@@ -11,21 +11,8 @@
 	<groupId>com.andys-portfolio</groupId>
 	<artifactId>auth-demo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>auth-demo</name>
+	<description>Spring Boot email/password authentication demo with JWT access tokens and Redis-backed refresh tokens.</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
