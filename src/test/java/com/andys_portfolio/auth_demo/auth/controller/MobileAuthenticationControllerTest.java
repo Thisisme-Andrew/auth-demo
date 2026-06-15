@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.andys_portfolio.auth_demo.auth.ClientType;
 import com.andys_portfolio.auth_demo.auth.service.RefreshTokenService;
 import com.andys_portfolio.auth_demo.database.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -100,7 +99,11 @@ class MobileAuthenticationControllerTest {
             .content(objectMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
         .andExpect(status().isOk());
 
-    assertThat(refreshTokenService.validateAndGetEmail(refreshToken, ClientType.MOBILE)).isNull();
+    mockMvc.perform(post(BASE_PATH + "/refresh-token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.error").value("Invalid or expired refresh token"));
   }
 
   private MvcResult registerUser() throws Exception {

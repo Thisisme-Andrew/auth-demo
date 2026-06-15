@@ -9,20 +9,14 @@ import com.andys_portfolio.auth_demo.auth.dto.request.RegisterRequest;
 import com.andys_portfolio.auth_demo.auth.service.AuthenticationService;
 import com.andys_portfolio.auth_demo.auth.service.RefreshTokenService;
 import com.andys_portfolio.auth_demo.database.user.repository.UserRepository;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootTest(properties = {
     "spring.docker.compose.skip.in-tests=false",
@@ -76,7 +70,10 @@ class SecurityConfigIntegrationTest {
     mockMvc.perform(get("/api/v1/users/me")
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.email").value(EMAIL));
+        .andExpect(jsonPath("$.email").value(EMAIL))
+        .andExpect(jsonPath("$.id").isNumber())
+        .andExpect(jsonPath("$.firstName").value("Security"))
+        .andExpect(jsonPath("$.lastName").value("Test"));
   }
 
   @Test
@@ -91,18 +88,5 @@ class SecurityConfigIntegrationTest {
   void actuatorHealthIsPublic() throws Exception {
     mockMvc.perform(get("/actuator/health"))
         .andExpect(status().isOk());
-  }
-
-  @TestConfiguration
-  static class ProtectedTestEndpointConfig {
-
-    @RestController
-    static class TestMeController {
-
-      @GetMapping("/api/v1/users/me")
-      Map<String, String> currentUser(Authentication authentication) {
-        return Map.of("email", authentication.getName());
-      }
-    }
   }
 }
