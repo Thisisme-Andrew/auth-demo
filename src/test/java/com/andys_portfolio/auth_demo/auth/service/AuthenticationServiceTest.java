@@ -46,6 +46,7 @@ class AuthenticationServiceTest {
     assertThat(response.getRefreshToken()).isNotBlank();
     assertThat(response.getUserId()).isNotNull();
     assertThat(userRepository.existsByEmail(EMAIL)).isTrue();
+    assertThat(userRepository.findByEmail(EMAIL).orElseThrow().getPassword()).startsWith("$2");
   }
 
   @Test
