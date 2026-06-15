@@ -11,6 +11,7 @@ import com.andys_portfolio.auth_demo.auth.service.RefreshTokenService;
 import com.andys_portfolio.auth_demo.database.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -88,5 +89,50 @@ class SecurityConfigIntegrationTest {
   void actuatorHealthIsPublic() throws Exception {
     mockMvc.perform(get("/actuator/health"))
         .andExpect(status().isOk());
+  }
+
+  @Nested
+  @SpringBootTest(properties = {
+      "spring.docker.compose.skip.in-tests=false",
+      "spring.jpa.hibernate.ddl-auto=update",
+      "jwt.access-token-expiration=-1000"
+  })
+  @AutoConfigureMockMvc
+  class ExpiredAccessTokenTests {
+
+    private static final String EXPIRED_EMAIL = "expired-security-test@example.com";
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @AfterEach
+    void tearDown() {
+      refreshTokenService.invalidateAllForEmail(EXPIRED_EMAIL);
+      userRepository.deleteAll();
+    }
+
+    @Test
+    void protectedEndpointWithExpiredBearerTokenReturnsUnauthorized() throws Exception {
+      var request = new RegisterRequest();
+      request.setFirstName("Security");
+      request.setLastName("Test");
+      request.setEmail(EXPIRED_EMAIL);
+      request.setPassword(PASSWORD);
+      String expiredToken = authenticationService.register(request, ClientType.MOBILE).getAccessToken();
+
+      mockMvc.perform(get("/api/v1/users/me")
+              .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken))
+          .andExpect(status().isUnauthorized())
+          .andExpect(jsonPath("$.error").value("Authentication required"));
+    }
   }
 }

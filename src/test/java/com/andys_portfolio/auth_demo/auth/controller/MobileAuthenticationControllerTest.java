@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -90,6 +91,23 @@ class MobileAuthenticationControllerTest {
   }
 
   @Test
+  void webRefreshTokenRejectedOnMobileEndpoint() throws Exception {
+    MvcResult webRegistered = mockMvc.perform(post("/api/v1/auth/web/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(registerJson()))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    String webRefreshToken = extractRefreshToken(webRegistered);
+
+    mockMvc.perform(post(BASE_PATH + "/refresh-token")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(Map.of("refreshToken", webRefreshToken))))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.error").value("Invalid or expired refresh token"));
+  }
+
+  @Test
   void logoutInvalidatesRefreshToken() throws Exception {
     JsonNode registered = readJson(registerUser());
     String refreshToken = registered.get("refreshToken").asText();
@@ -130,5 +148,12 @@ class MobileAuthenticationControllerTest {
     return objectMapper.writeValueAsString(Map.of(
         "email", EMAIL,
         "password", PASSWORD));
+  }
+
+  private static String extractRefreshToken(MvcResult result) {
+    String setCookie = result.getResponse().getHeader(HttpHeaders.SET_COOKIE);
+    int valueStart = setCookie.indexOf('=') + 1;
+    int valueEnd = setCookie.indexOf(';');
+    return setCookie.substring(valueStart, valueEnd);
   }
 }

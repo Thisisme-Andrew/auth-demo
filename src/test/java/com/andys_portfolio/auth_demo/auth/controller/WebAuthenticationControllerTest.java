@@ -115,6 +115,22 @@ class WebAuthenticationControllerTest {
         .andExpect(cookie().maxAge(RefreshTokenCookieService.COOKIE_NAME, 0));
   }
 
+  @Test
+  void refreshAfterLogoutReturnsUnauthorized() throws Exception {
+    String refreshToken = extractRefreshToken(registerUser());
+
+    mockMvc.perform(post(BASE_PATH + "/logout")
+            .header("X-Requested-With", "XMLHttpRequest")
+            .cookie(new jakarta.servlet.http.Cookie(RefreshTokenCookieService.COOKIE_NAME, refreshToken)))
+        .andExpect(status().isOk());
+
+    mockMvc.perform(post(BASE_PATH + "/refresh-token")
+            .header("X-Requested-With", "XMLHttpRequest")
+            .cookie(new jakarta.servlet.http.Cookie(RefreshTokenCookieService.COOKIE_NAME, refreshToken)))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.error").value("Invalid or expired refresh token"));
+  }
+
   private MvcResult registerUser() throws Exception {
     return mockMvc.perform(post(BASE_PATH + "/register")
             .contentType(MediaType.APPLICATION_JSON)
