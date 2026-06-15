@@ -1,10 +1,10 @@
-package com.andys_portfolio.auth_demo.user.repository;
+package com.andys_portfolio.auth_demo.database.user.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.andys_portfolio.auth_demo.user.entity.User;
+import com.andys_portfolio.auth_demo.database.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
