@@ -1,4 +1,4 @@
-package com.andys_portfolio.auth_demo;
+package com.andys_portfolio.auth_demo.core.configs;
 
 
 import lombok.RequiredArgsConstructor;
