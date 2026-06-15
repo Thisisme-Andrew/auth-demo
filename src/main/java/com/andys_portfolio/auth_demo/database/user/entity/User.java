@@ -1,4 +1,4 @@
-package com.andys_portfolio.auth_demo.user.entity;
+package com.andys_portfolio.auth_demo.database.user.entity;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
